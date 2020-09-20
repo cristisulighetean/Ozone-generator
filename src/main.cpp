@@ -12,11 +12,11 @@
 //define pins
 
 //switches
-int boostPin = 2;     //Boost-button, low = active
-int startPin = 4;     //Start-button, low = active
+int boostPin = 3;     //Boost-button, low = active
+int startPin = 2;     //Start-button, low = active
 
 //LEDS                
-int boostLed = 3;
+int boostLed = 4;
 int fanLed = 5;
 int o3Led = 6;
 
