@@ -5,8 +5,12 @@
 //debounce input buttons
 #include <Bounce2.h>
 
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+
 /* This is an Ozone Generator 
- * Questions: How will the ozone generator stop ?
 */
 
 //define pins
@@ -30,7 +34,7 @@ int emptyRelay = 9;   //Empty relay port
 
 //analog input
 int powerPin = A0;
-int timerPin = A1;
+int timerPin = A2;
 
 //LCD pins
 //Pins will be A4 & A5
@@ -96,6 +100,14 @@ void setup() {
   pinMode(fanPWM, OUTPUT);  digitalWrite(fanPWM, LOW);      //Fan PWM is set to low (duty cycle 0)
 
  //fan & gen pins are set to HIGH because of NC contact on the Relay Board 
+
+
+  //init LCD
+  lcd.init();
+  lcd.backlight();
+  lcd.home();lcd.clear();
+  lcd.begin(16,2);
+  
 
   Serial.println(F("System ready"));
 }
@@ -173,6 +185,13 @@ void startStopSystem(){
   if (systemActive == 0)
   {
     Serial.println(F("Starting System"));
+
+    //Print status on LCD
+    lcd.clear();
+    lcd.home();
+    lcd.print("System starting");
+
+
     readAnalogButtons(); 
     systemActive = 1;
     fanOn();
@@ -187,6 +206,11 @@ void startStopSystem(){
     o3Off();
     sysTimer2.stop(systemActiveID);    // stop the call to duty cycle
     //disable System
+
+    //Print status on LCD
+    lcd.clear();
+    lcd.home();
+    lcd.print("System stopping");
   }
 
   
@@ -220,7 +244,12 @@ void readAnalogButtons()
   else 
   { onTime = 0; }
 
-  Serial.print(F("Select onTime[s] of: ")); Serial.println(onTime);
+  Serial.print(F("Select onTime[s] of: ")); Serial.println(powerVal);
+  
+  lcd.clear();
+  //lcd.setCursor();
+  lcd.print({"On time: "});
+  //print Grams of O3
 
 
   //Choose interval of generator on
@@ -237,7 +266,12 @@ void readAnalogButtons()
   else 
   { totalTime = 0; }
 
-  Serial.print(F("Select totalTime[s] of: ")); Serial.println(totalTime);
+  Serial.print(F("Select totalTime[s] of: ")); Serial.println(timerVal);
+
+  lcd.clear();
+  //lcd.setCursor();
+  lcd.print({"Total time: "});
+  //print total time in min
 }
 
 void fanOn(){
@@ -291,4 +325,9 @@ void dutyCycle(){
   // reset cycle time is it is bigger than 20 s
   if (cycleTime >= 20) { 
     cycleTime = 0; }
+
+  //print generator running 
+  lcd.clear();
+  lcd.home();
+  lcd.print("Generator Running");
 }
