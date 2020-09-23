@@ -1,17 +1,18 @@
 #include <Arduino.h>
+
 //timer library
 #include <Event.h>
 #include <Timer.h>
+
 //debounce input buttons
 #include <Bounce2.h>
 
+//LCD library
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
-
-/* This is an Ozone Generator 
-*/
+//LCD object
+LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 //define pins
 
@@ -34,7 +35,7 @@ int emptyRelay = 9;   //Empty relay port
 
 //analog input
 int powerPin = A0;
-int timerPin = A2;
+int timerPin = A1;
 
 //LCD pins
 //Pins will be A4 & A5
@@ -106,9 +107,8 @@ void setup() {
   lcd.init();
   lcd.backlight();
   lcd.home();lcd.clear();
-  lcd.begin(16,2);
-  
 
+  
   Serial.println(F("System ready"));
 }
 
@@ -190,6 +190,7 @@ void startStopSystem(){
     lcd.clear();
     lcd.home();
     lcd.print("System starting");
+    delay(1000); //another option must be found
 
 
     readAnalogButtons(); 
@@ -211,6 +212,7 @@ void startStopSystem(){
     lcd.clear();
     lcd.home();
     lcd.print("System stopping");
+    delay(1000); //another option must be found
   }
 
   
@@ -246,9 +248,9 @@ void readAnalogButtons()
 
   Serial.print(F("Select onTime[s] of: ")); Serial.println(powerVal);
   
-  lcd.clear();
-  //lcd.setCursor();
-  lcd.print({"On time: "});
+  lcd.clear();  //clears old values 
+  lcd.setCursor(0,0);
+  lcd.print({"Ontime: "});lcd.print(powerVal);
   //print Grams of O3
 
 
@@ -268,10 +270,10 @@ void readAnalogButtons()
 
   Serial.print(F("Select totalTime[s] of: ")); Serial.println(timerVal);
 
-  lcd.clear();
-  //lcd.setCursor();
-  lcd.print({"Total time: "});
-  //print total time in min
+  //Print timer value to LCD
+  lcd.setCursor(0,1); // sets cursor to 2nd row
+  lcd.print({"Total time: "});lcd.print(timerVal);
+  
 }
 
 void fanOn(){
