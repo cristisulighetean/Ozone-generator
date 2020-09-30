@@ -21,17 +21,17 @@ int boostPin = 3;     //Boost-button, low = active
 int startPin = 2;     //Start-button, low = active
 
 //LEDS                
-int boostLed = 6;
+int boostLed = 4;
 int fanLed = 5;
-int o3Led = 4;
+int o3Led = 6;
 
 
 //relays
-int emptyRelay2 = 10;   //Empty relay
-int fanPWM = 11;        //FAN PWM pin (not relay)
-int o3aPin = 7;         //O3-1
-int o3bPin = 8;         //O3-2
-int emptyRelay = 9;     //Empty relay port
+int fanPin = 10;      //FAN Relay
+int fanPWM = 11;      //FAN PWM pin (not relay)
+int o3aPin = 7;       //O3-1
+int o3bPin = 8;       //O3-2
+int emptyRelay = 9;   //Empty relay port
 
 //analog input
 int powerPin = A0;
@@ -44,8 +44,6 @@ int timerPin = A1;
 boolean systemActive = 0;     //is the system currently active?
 int systemActiveID = - 1;     //ID of the cycle timer
 boolean boostActive = 0;      //is the boost button active?
-int lcdTimerID = -1;          //ID of the LCD timer
-
 
 unsigned long totalTime = 0;  //how many s has the system been running in total
 unsigned long boostTime = 0;  //how many s has the boost been active?
@@ -61,8 +59,6 @@ int boostMaxTime = 600;       //how many [s] should the boost stay on?
 
 Timer sysTimer1;      //blocking/unblocking buttons             
 Timer sysTimer2;      //duty cycle
-Timer sysTimer3;      //lcd selecting values
-
 
 //debounce buttons
 Bounce debounceBoost = Bounce();
@@ -70,12 +66,6 @@ Bounce debounceStart = Bounce();
 
 boolean boostBlocked = 0;                                      
 boolean startBlocked = 0;      
-
-//local varibles for display
-int gramsSelected{};
-int totalTimeSelected{};
-bool LCDDone{false};  //bool to know if template was printed
-
 
 //Function headers
 void boostUnboostSystem();
@@ -88,8 +78,6 @@ void fanOn();
 void dutyCycle();
 void o3Off();
 void o3On();
-void selectValues();
-void displayTemplate();
 
 
 void setup() {
@@ -107,9 +95,10 @@ void setup() {
   pinMode(boostLed, OUTPUT);  digitalWrite(boostLed, LOW);
   pinMode(fanLed, OUTPUT);  digitalWrite(fanLed, LOW);
   pinMode(o3Led, OUTPUT);  digitalWrite(o3Led, LOW);
+  pinMode(fanPin, OUTPUT);  digitalWrite(fanPin, HIGH);     // Must be connected on NC pin
   pinMode(o3aPin, OUTPUT);  digitalWrite(o3aPin, HIGH);
   pinMode(o3bPin, OUTPUT);  digitalWrite(o3bPin, HIGH);
-  pinMode(fanPWM, OUTPUT);  analogWrite(fanPWM, 0);      //Fan PWM is set to low (duty cycle 0)
+  pinMode(fanPWM, OUTPUT);  digitalWrite(fanPWM, LOW);      //Fan PWM is set to low (duty cycle 0)
 
  //fan & gen pins are set to HIGH because of NC contact on the Relay Board 
 
@@ -127,7 +116,6 @@ void loop() {
  //update all timers & debounce objects
  sysTimer1.update();
  sysTimer2.update();
- sysTimer3.update();
  debounceBoost.update();
  debounceStart.update();
 
@@ -149,99 +137,17 @@ void loop() {
    Serial.println(F("Boost timer ended")); 
    boostUnboostSystem(); 
  }
-  if (systemActive == 0 && lcdTimerID == -1){
-    //call a function to write to lcd template
-    lcdTimerID = sysTimer3.every(1000,selectValues);
-    
-    
-  }
-  if(LCDDone != true && systemActive == 0){
-      displayTemplate();
-      LCDDone = true;
-    }
-  //Serial.println("LCD done: ");
-  //Serial.println(LCDDone);
+
+  //if system stopped print status
   
-}
-
-void displayTemplate(){
-  //Display template to LCD
-  lcd.setCursor(0,0);
-  lcd.print("                  ");  //clears old values
-  lcd.setCursor(0,0);
-  lcd.print("Total g: ");
   
-  lcd.setCursor(0,1);
-  lcd.print("                  ");  //clears old values
-  lcd.setCursor(0,1);
-  lcd.print("Total time: ");
-
-
-}
-
-void selectValues(){
-  //Used to select var
-  //this function is called by systimer3 to display to the LCD the values 
-  //selected by the 2 potentiometers
-  //Analog values will be between 0 & 1023
-  //225 intervals
-
-  int powerVal = analogRead(powerPin);
-  int timerVal = analogRead(timerPin);
-
-
-  //Choose value of ozone generated
-  if ((powerVal >= 170) && (powerVal < 343)) 
-  { gramsSelected = 1; }     //1 g/h
-  else if ((powerVal >= 343) && (powerVal < 513)) 
-  { gramsSelected = 2; }     //2 g/h
-  else if ((powerVal >= 513) && (powerVal < 683)) 
-  { gramsSelected = 5; }     //5 g/h
-  else if ((powerVal >= 683) && (powerVal < 853)) 
-  { gramsSelected = 10; }     //10 g/h
-  else if ((powerVal >= 853) && (powerVal < 1100)) 
-  { gramsSelected = 20; }     //20 g/h
-  else 
-  { gramsSelected = 0; }
-  
-
-  
-  lcd.setCursor(9,0);
-  lcd.print("         ");
-  lcd.setCursor(9,0);
-  lcd.print(gramsSelected);
-  lcd.setCursor(11,0);
-  lcd.print("g");//pos 11
-
-
-  //Choose interval of generator on
-  if ((timerVal >= 173) && (timerVal < 343)) 
-  { totalTimeSelected = 10 * 60; }     //10 min
-  else if ((timerVal >= 343) && (timerVal < 513)) 
-  { totalTimeSelected = 30 * 60; }     //30 min
-  else if ((timerVal >= 513) && (timerVal < 683)) 
-  { totalTimeSelected = 60 * 60; }     //60 min
-  else if ((timerVal >= 683) && (timerVal < 853)) 
-  { totalTimeSelected = 120 * 60; }     //120 min
-  else if ((timerVal >= 853) && (timerVal < 1100)) 
-  { totalTimeSelected = 240 * 60; }     //240 min
-  else 
-  { totalTimeSelected = 0; }
-
-
-
-  //print values to lcd
-  lcd.setCursor(12,1);
-  lcd.print("       ");
-  lcd.setCursor(12,1);
-  lcd.print(totalTimeSelected/60);
-  lcd.setCursor(15,1); lcd.print('m'); // pos 15
-  //pos 13
+ 
 }
 
 void boostUnboostSystem(){
   /***
    * Start or Stop Boost Function
+   * 
    */
 
   //After the start of the function block boost button
@@ -280,29 +186,22 @@ void startStopSystem(){
   //reset boost timer
   boostTime = 0;
 
-  if (systemActive == 0 && (gramsSelected > 0) && (totalTimeSelected > 0))
+  if (systemActive == 0)
   {
     Serial.println(F("Starting System"));
 
     //Print status on LCD
     lcd.clear();
+    lcd.home();
     lcd.print("System starting");
 
-    //readAnalogButtons(); 
-    onTime = gramsSelected;
-    totalTime = totalTimeSelected;
-
+    readAnalogButtons(); 
     systemActive = 1;
     fanOn();
-
-    sysTimer3.stop(lcdTimerID);     //stop timer
-       
-
-    systemActiveID = sysTimer2.every(1000, dutyCycle);    //call duty cycle every 1000ms    
+    systemActiveID = sysTimer2.every(1000, dutyCycle);    //call duty cycle every 1000ms
     Serial.print("Timer2 ID: "); Serial.println(systemActiveID);     //print id of the timer
-    
   }
-  else if(systemActive == 1)
+  else
   {
     Serial.println(F("Stopping System"));
     systemActive = 0;
@@ -313,11 +212,13 @@ void startStopSystem(){
     boostActive = 0;
     boostTime = 0;
 
-    LCDDone = false;
-
     sysTimer2.stop(systemActiveID);    // stop the call to duty cycle
-    lcdTimerID = sysTimer3.every(1000,selectValues);
-    
+    //disable System
+
+    //Print status on LCD
+    lcd.clear();
+    lcd.home();
+    lcd.print("System stopping");
     
   }
 
@@ -330,7 +231,7 @@ void unblockStart()
 
 void readAnalogButtons()
 {
-  //Used to set var
+
   //Analog values will be between 0 & 1023
   //225 intervals
 
@@ -339,49 +240,59 @@ void readAnalogButtons()
 
 
   //Choose value of ozone generated
-  if ((powerVal >= 170) && (powerVal < 343)) 
+  if ((powerVal > 120) && (powerVal < 220)) 
   { onTime = 1; }     //1 g/h
-  else if ((powerVal >= 343) && (powerVal < 513)) 
+  else if ((powerVal > 270) && (powerVal < 370)) 
   { onTime = 2; }     //2 g/h
-  else if ((powerVal >= 513) && (powerVal < 683)) 
+  else if ((powerVal > 450) && (powerVal < 550)) 
   { onTime = 5; }     //5 g/h
-  else if ((powerVal >= 683) && (powerVal < 853)) 
+  else if ((powerVal > 610) && (powerVal < 710)) 
   { onTime = 10; }     //10 g/h
-  else if ((powerVal >= 853) && (powerVal < 1100)) 
+  else if ((powerVal > 790) && (powerVal < 890)) 
   { onTime = 20; }     //20 g/h
   else 
   { onTime = 0; }
 
   Serial.print(F("Select onTime[s] of: ")); Serial.println(onTime);
   
+  lcd.clear();  //clears old values 
+  lcd.setCursor(0,0);
+  lcd.print({"Ontime: "});lcd.print(powerVal);
+  //print Grams of O3
 
 
   //Choose interval of generator on
-  if ((timerVal >= 170) && (timerVal < 343)) 
+  if ((timerVal > 120) && (timerVal < 220)) 
   { totalTime = 10 * 60; }     //10 min
-  else if ((timerVal >= 343) && (timerVal < 513)) 
+  else if ((timerVal > 270) && (timerVal < 370)) 
   { totalTime = 30 * 60; }     //30 min
-  else if ((timerVal >= 513) && (timerVal < 683)) 
+  else if ((timerVal > 450) && (timerVal < 550)) 
   { totalTime = 60 * 60; }     //60 min
-  else if ((timerVal >= 683) && (timerVal < 853)) 
+  else if ((timerVal > 610) && (timerVal < 710)) 
   { totalTime = 120 * 60; }     //120 min
-  else if ((timerVal >= 853) && (timerVal < 1100)) 
+  else if ((timerVal > 790) && (timerVal < 890)) 
   { totalTime = 240 * 60; }     //240 min
   else 
   { totalTime = 0; }
 
   Serial.print(F("Select totalTime[s] of: ")); Serial.println(totalTime);
 
+  //Print timer value to LCD
+  lcd.setCursor(0,1); // sets cursor to 2nd row
+  lcd.print({"Total time: "});lcd.print(timerVal);
+  
 }
 
 void fanOn(){
   Serial.println(F("The Fans are ON"));
   digitalWrite(fanLed, HIGH);
-  analogWrite(fanPWM,255);      
+  digitalWrite(fanPin, LOW);
+  digitalWrite(fanPWM, HIGH);      
 }
 void fanOff(){
   digitalWrite(fanLed, LOW);
-  analogWrite(fanPWM,0);
+  digitalWrite(fanPin, HIGH);
+  digitalWrite(fanPWM, LOW);
 
 }
 
@@ -426,6 +337,6 @@ void dutyCycle(){
 
   //print generator running 
   lcd.clear();
-  lcd.print("Generator On");
+  lcd.home();
+  lcd.print("Generator Running");
 }
-

@@ -1,6 +1,8 @@
+
+#include <Arduino.h>
 #include <Wire.h>
 #include <LiquidCrystal_PCF8574.h> //not included in file system
- 
+
 LiquidCrystal_PCF8574 lcd(0x27);  // set the LCD address to 0x27 for a 16 chars and 2 line display
  
 int show;
@@ -9,7 +11,7 @@ void setup()
 {
   int error;
  
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("LCD...");
  
   // See http://playground.arduino.cc/Main/I2cScanner
@@ -36,7 +38,8 @@ void loop()
     lcd.setBacklight(255);
     lcd.home(); lcd.clear();
     lcd.print("Hello LCD");
-    lcd.setCursor(0,1);<br>    lcd.print("circuits4You.com");
+    lcd.setCursor(0,1);    
+    lcd.print("circuits4You.com");
     delay(1000);
  
     lcd.setBacklight(0);
