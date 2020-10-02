@@ -27,11 +27,14 @@ int o3Led = 4;
 
 
 //relays
-int emptyRelay2 = 10;   //Empty relay
-int fanPWM = 11;        //FAN PWM pin (not relay)
-int o3aPin = 7;         //O3-1
-int o3bPin = 8;         //O3-2
-int emptyRelay = 9;     //Empty relay port
+int o3aPin = 7;          //O3-1
+int o3bPin = 8;          //O3-2
+int emptyRelay = 9;      //Empty relay port
+int emptyRelay2 = 10;     //Empty relay
+
+//Fan pins
+int fanPWM1 = 11;        //FAN PWM pin 
+int fanPWM2 = 12;        //Fan PWM pin
 
 //analog input
 int powerPin = A0;
@@ -109,11 +112,9 @@ void setup() {
   pinMode(o3Led, OUTPUT);  digitalWrite(o3Led, LOW);
   pinMode(o3aPin, OUTPUT);  digitalWrite(o3aPin, HIGH);
   pinMode(o3bPin, OUTPUT);  digitalWrite(o3bPin, HIGH);
-  pinMode(fanPWM, OUTPUT);  analogWrite(fanPWM, 0);      //Fan PWM is set to low (duty cycle 0)
-
- //fan & gen pins are set to HIGH because of NC contact on the Relay Board 
-
-
+  pinMode(fanPWM1, OUTPUT);  analogWrite(fanPWM1, 0);  
+  pinMode(fanPWM2, OUTPUT);  analogWrite(fanPWM2, 0);   
+ 
   //init LCD
   lcd.init();
   lcd.backlight();
@@ -328,60 +329,17 @@ void unblockStart()
   startBlocked = 0; 
 }
 
-void readAnalogButtons()
-{
-  //Used to set var
-  //Analog values will be between 0 & 1023
-  //225 intervals
-
-  int powerVal = analogRead(powerPin);
-  int timerVal = analogRead(timerPin);
-
-
-  //Choose value of ozone generated
-  if ((powerVal >= 170) && (powerVal < 343)) 
-  { onTime = 1; }     //1 g/h
-  else if ((powerVal >= 343) && (powerVal < 513)) 
-  { onTime = 2; }     //2 g/h
-  else if ((powerVal >= 513) && (powerVal < 683)) 
-  { onTime = 5; }     //5 g/h
-  else if ((powerVal >= 683) && (powerVal < 853)) 
-  { onTime = 10; }     //10 g/h
-  else if ((powerVal >= 853) && (powerVal < 1100)) 
-  { onTime = 20; }     //20 g/h
-  else 
-  { onTime = 0; }
-
-  Serial.print(F("Select onTime[s] of: ")); Serial.println(onTime);
-  
-
-
-  //Choose interval of generator on
-  if ((timerVal >= 170) && (timerVal < 343)) 
-  { totalTime = 10 * 60; }     //10 min
-  else if ((timerVal >= 343) && (timerVal < 513)) 
-  { totalTime = 30 * 60; }     //30 min
-  else if ((timerVal >= 513) && (timerVal < 683)) 
-  { totalTime = 60 * 60; }     //60 min
-  else if ((timerVal >= 683) && (timerVal < 853)) 
-  { totalTime = 120 * 60; }     //120 min
-  else if ((timerVal >= 853) && (timerVal < 1100)) 
-  { totalTime = 240 * 60; }     //240 min
-  else 
-  { totalTime = 0; }
-
-  Serial.print(F("Select totalTime[s] of: ")); Serial.println(totalTime);
-
-}
 
 void fanOn(){
   Serial.println(F("The Fans are ON"));
   digitalWrite(fanLed, HIGH);
-  analogWrite(fanPWM,255);      
+  analogWrite(fanPWM1,255);
+  analogWrite(fanPWM2,255);      
 }
 void fanOff(){
   digitalWrite(fanLed, LOW);
-  analogWrite(fanPWM,0);
+  analogWrite(fanPWM1,0);
+  analogWrite(fanPWM2,0);
 
 }
 
