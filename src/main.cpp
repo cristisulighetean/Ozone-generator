@@ -49,13 +49,11 @@ int systemActiveID = - 1;     //ID of the cycle timer
 boolean boostActive = 0;      //is the boost button active?
 int lcdTimerID = -1;          //ID of the LCD timer
 
-
-unsigned long totalTime = 0;  //how many s has the system been running in total
 unsigned long boostTime = 0;  //how many s has the boost been active?
 
 int cycleTime = 0;            //where are we in a 20 s cycle
-int GenOnTime= 0;              //how many seconds should we stay on
-int totalRunTime = 0;         //how many seconds should we keep the system running?
+int GenOnTime= 0;             //how many seconds should we stay on
+int currentTimeOn = 0;        //current time on
 int boostMaxTime = 600;       //how many [s] should the boost stay on?
 //timers
 //on some systems I experienced (or produced?) problems with too many entries per timer 
@@ -132,17 +130,25 @@ void loop() {
  debounceBoost.update();
  debounceStart.update();
 
- //Check if buttons have been pressed
+ //Boost Function conditions
  if ((boostBlocked == 0) && (debounceBoost.read() == LOW)) 
  { 
     Serial.println(F("Boost-Button was pressed")); 
     boostUnboostSystem(); 
  }
+
+ //Start Stop Condtions
  if ((startBlocked == 0) && (debounceStart.read() == LOW)) 
  { 
    Serial.println(F("Start-Button was pressed")); 
    startStopSystem(); 
  }
+
+if(systemActive == 1 && currentTimeOn >= totalTimeSelected){
+  Serial.println("System finished operation");
+  startStopSystem();
+}
+
 
  //Check if Boost has to be disabled
  if ((boostActive == 1) && ( systemActive == 1 ) && (boostTime >  boostMaxTime)) 
@@ -150,6 +156,8 @@ void loop() {
    Serial.println(F("Boost timer ended")); 
    boostUnboostSystem(); 
  }
+
+ //LCD Update
   if (systemActive == 0 && lcdTimerID == -1){
     //call a function to write to lcd template
     lcdTimerID = sysTimer3.every(1000,selectValues);
@@ -292,7 +300,6 @@ void startStopSystem(){
 
     //readAnalogButtons(); 
     GenOnTime = gramsSelected;
-    totalTime = totalTimeSelected;
 
     systemActive = 1;
     fanOn();
@@ -315,6 +322,9 @@ void startStopSystem(){
     //deactivate boost timer
     boostActive = 0;
     boostTime = 0;
+
+    //Reset functioning time
+    currentTimeOn = 0;
 
     LCDDone = false;
 
@@ -361,9 +371,10 @@ void dutyCycle(){
     The amount of time the generators are on
   */
   //increment timers
-  totalTime = totalTime + 1;
+  currentTimeOn = currentTimeOn + 1;
+
   //Debug time remaining
-  Serial.print("Remaining time:");Serial.println(totalTime);
+  Serial.print("Remaining time:");Serial.println(totalTimeSelected-currentTimeOn);
 
   if (boostActive == 1) { 
     boostTime = boostTime + 1; 
