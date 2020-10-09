@@ -54,13 +54,13 @@ unsigned long totalTime = 0;  //how many s has the system been running in total
 unsigned long boostTime = 0;  //how many s has the boost been active?
 
 int cycleTime = 0;            //where are we in a 20 s cycle
-int onTime = 0;               //how many seconds should we stay on
+int GenOnTime= 0;              //how many seconds should we stay on
 int totalRunTime = 0;         //how many seconds should we keep the system running?
 int boostMaxTime = 600;       //how many [s] should the boost stay on?
-
 //timers
 //on some systems I experienced (or produced?) problems with too many entries per timer 
 //hence we split vital functions apart
+
 
 Timer sysTimer1;      //blocking/unblocking buttons             
 Timer sysTimer2;      //duty cycle
@@ -291,7 +291,7 @@ void startStopSystem(){
     digitalWrite(GenOnLed, HIGH);
 
     //readAnalogButtons(); 
-    onTime = gramsSelected;
+    GenOnTime = gramsSelected;
     totalTime = totalTimeSelected;
 
     systemActive = 1;
@@ -362,6 +362,8 @@ void dutyCycle(){
   */
   //increment timers
   totalTime = totalTime + 1;
+  //Debug time remaining
+  Serial.print("Remaining time:");Serial.println(totalTime);
 
   if (boostActive == 1) { 
     boostTime = boostTime + 1; 
@@ -370,7 +372,7 @@ void dutyCycle(){
   }
 
   //check if cycle time is bigger than the on time selected
-  if (cycleTime < onTime) { 
+  if (cycleTime < GenOnTime) { 
     o3On(); }
   else { 
     o3Off(); }
