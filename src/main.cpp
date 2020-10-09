@@ -22,8 +22,8 @@ int startPin = 2;     //Start-button, low = active
 
 //LEDS                
 int boostLed = 6;
-int fanLed = 5;
-int o3Led = 4;
+int o3Led = 5;
+int GenOnLed = 4;
 
 
 //relays
@@ -108,7 +108,7 @@ void setup() {
   debounceStart.interval(5); // interval in ms
 
   pinMode(boostLed, OUTPUT);  digitalWrite(boostLed, LOW);
-  pinMode(fanLed, OUTPUT);  digitalWrite(fanLed, LOW);
+  pinMode(GenOnLed, OUTPUT);  digitalWrite(GenOnLed, LOW);
   pinMode(o3Led, OUTPUT);  digitalWrite(o3Led, LOW);
   pinMode(o3aPin, OUTPUT);  digitalWrite(o3aPin, HIGH);
   pinMode(o3bPin, OUTPUT);  digitalWrite(o3bPin, HIGH);
@@ -288,6 +288,7 @@ void startStopSystem(){
     //Print status on LCD
     lcd.clear();
     lcd.print("System starting");
+    digitalWrite(GenOnLed, HIGH);
 
     //readAnalogButtons(); 
     onTime = gramsSelected;
@@ -306,6 +307,7 @@ void startStopSystem(){
   else if(systemActive == 1)
   {
     Serial.println(F("Stopping System"));
+    digitalWrite(GenOnLed, LOW);
     systemActive = 0;
     fanOff();
     o3Off();
@@ -332,12 +334,10 @@ void unblockStart()
 
 void fanOn(){
   Serial.println(F("The Fans are ON"));
-  digitalWrite(fanLed, HIGH);
   analogWrite(fanPWM1,255);
   analogWrite(fanPWM2,255);      
 }
 void fanOff(){
-  digitalWrite(fanLed, LOW);
   analogWrite(fanPWM1,0);
   analogWrite(fanPWM2,0);
 
