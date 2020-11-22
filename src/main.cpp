@@ -295,7 +295,7 @@ void startStopSystem(){
 
     //Print status on LCD
     lcd.clear();
-    lcd.print("System starting");
+    lcd.print("System running");
     digitalWrite(GenOnLed, HIGH);
 
     //readAnalogButtons(); 
