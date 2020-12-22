@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <math.h>
 
 //timer library
 #include <Event.h>
@@ -60,9 +61,10 @@ int boostMaxTime = 600;       //how many [s] should the boost stay on?
 //hence we split vital functions apart
 
 
-Timer sysTimer1;      //blocking/unblocking buttons             
-Timer sysTimer2;      //duty cycle
-Timer sysTimer3;      //lcd selecting values
+Timer sysTimer1;      // blocking/unblocking buttons             
+Timer sysTimer2;      // duty cycle
+Timer sysTimer3;      // lcd selecting values
+//Timer sysTimer4;      // timer for updating the remaining time
 
 
 //debounce buttons
@@ -90,7 +92,7 @@ void dutyCycle();
 void o3Off();
 void o3On();
 void selectValues();
-void displayTemplate();
+void displayTemplateSelectTime();
 
 
 void setup() {
@@ -127,6 +129,7 @@ void loop() {
  sysTimer1.update();
  sysTimer2.update();
  sysTimer3.update();
+
  debounceBoost.update();
  debounceStart.update();
 
@@ -165,7 +168,7 @@ if(systemActive == 1 && currentTimeOn >= totalTimeSelected){
     
   }
   if(LCDDone != true && systemActive == 0){
-      displayTemplate();
+      displayTemplateSelectTime();
       LCDDone = true;
     }
   //Serial.println("LCD done: ");
@@ -173,7 +176,7 @@ if(systemActive == 1 && currentTimeOn >= totalTimeSelected){
   
 }
 
-void displayTemplate(){
+void displayTemplateSelectTime(){
   //Display template to LCD
   lcd.setCursor(0,0);
   lcd.print("                  ");  //clears old values
@@ -187,6 +190,44 @@ void displayTemplate(){
 
 
 }
+
+void displayRemTime(int secondsRem){
+  // Displays the remaining time while the generator is running
+
+  int minutes, seconds;
+  //Get minutes
+  minutes = floor(secondsRem / 60); 
+
+  //Get seconds
+  seconds = secondsRem - (minutes * 60 );
+
+  // Display Remaining time (clear old values first)
+  lcd.setCursor(1,1);
+  lcd.print("   ");
+  lcd.setCursor(1,1);
+  lcd.print(minutes);
+
+  lcd.setCursor(9,1);
+  lcd.print("  ");
+  lcd.setCursor(9,1);
+  lcd.print(seconds);
+ 
+}
+
+void displayTemplateRemainingTime(){
+  // Display template for the remaining time while generator is running
+
+  lcd.setCursor(0,0);
+  lcd.print("Remaining Time");
+
+  lcd.setCursor(4,1);
+  lcd.print(" min");
+  
+  lcd.setCursor(11,1);
+  lcd.print(" sec");
+
+}
+
 
 void selectValues(){
   //Used to select var
@@ -295,7 +336,11 @@ void startStopSystem(){
 
     //Print status on LCD
     lcd.clear();
-    lcd.print("System running");
+    //lcd.print("System running");
+
+    //Print template for remaining time
+    displayTemplateRemainingTime();
+
     digitalWrite(GenOnLed, HIGH);
 
     //readAnalogButtons(); 
@@ -373,8 +418,9 @@ void dutyCycle(){
   //increment timers
   currentTimeOn = currentTimeOn + 1;
 
-  //Debug time remaining
-  Serial.print("Remaining time:");Serial.println(totalTimeSelected-currentTimeOn);
+  //Debug time remaining in seconds
+  int remainingTime = totalTimeSelected-currentTimeOn;
+  Serial.print("Remaining time:");Serial.println(remainingTime);
 
   if (boostActive == 1) { 
     boostTime = boostTime + 1; 
@@ -398,5 +444,7 @@ void dutyCycle(){
   //print generator running 
   lcd.clear();
   lcd.print("Generator On");
+  // Call display remaining time
+  displayRemTime(remainingTime);
 }
 
