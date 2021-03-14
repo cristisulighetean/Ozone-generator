@@ -279,7 +279,6 @@ void selectValues(){
   { totalTimeSelected = 0; }
 
 
-
   //print values to lcd
   lcd.setCursor(12,1);
   lcd.print("       ");
@@ -293,7 +292,6 @@ void boostUnboostSystem(){
   /***
    * Start or Stop Boost Function
    */
-
   //After the start of the function block boost button
   // and after 500ms unlock the button
   boostBlocked = 1;
@@ -376,9 +374,7 @@ void startStopSystem(){
     sysTimer2.stop(systemActiveID);    // stop the call to duty cycle
     lcdTimerID = sysTimer3.every(1000,selectValues);
     
-    
   }
-
   
 }
 void unblockStart() 
