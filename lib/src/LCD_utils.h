@@ -32,6 +32,23 @@ void LCDdisplayRemainingTime(LiquidCrystal_I2C lcd, uint32_t secondsRemaining);
  */
 void LCDdisplayTemplateRemainingTime(LiquidCrystal_I2C lcd);
 
+/**
+ * @brief Display selected grams value
+ * 
+ * @param lcd 
+ * @param grams 
+ */
+void LCDdisplaySelectedGrams(LiquidCrystal_I2C lcd, uint16_t grams);
+
+/**
+ * @brief Display selected minutes value
+ * 
+ * @param lcd 
+ * @param minutes 
+ */
+void LCDdisplaySelectedMinutes(LiquidCrystal_I2C lcd, uint16_t minutes);
+
+
 
 #endif
 

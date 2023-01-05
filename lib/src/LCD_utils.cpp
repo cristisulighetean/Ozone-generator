@@ -55,3 +55,21 @@ void LCDdisplayTemplateRemainingTime(LiquidCrystal_I2C lcd)
   lcd.print(" sec");
 }
 
+void LCDdisplaySelectedGrams(LiquidCrystal_I2C lcd, uint16_t grams)
+{
+  lcd.setCursor(9,0);
+  lcd.print("         ");
+  lcd.setCursor(9,0);
+  lcd.print(grams);
+  lcd.setCursor(11,0);
+  lcd.print("g");   //pos 11
+}
+
+void LCDdisplaySelectedMinutes(LiquidCrystal_I2C lcd, uint16_t minutes)
+{
+  lcd.setCursor(12,1);
+  lcd.print("       ");
+  lcd.setCursor(12,1);
+  lcd.print(minutes / 60);
+  lcd.setCursor(15,1); lcd.print('m');  // pos 15
+}
